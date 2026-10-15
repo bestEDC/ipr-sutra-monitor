@@ -1,6 +1,6 @@
 # InvestPR Legislative Monitor (SUTRA): the unattended daily alert.
 #
-# The run writes sutra.xml to the public Pages repo bestEDC/ipr-sutra-feed. HubSpot's RSS email
+# The run writes sutra.xml to this repo's gh-pages branch (GitHub Pages). HubSpot's RSS email
 # fetches it at 05:45 US/Eastern and mails the item if its <guid> is new. No matches means no
 # new guid, so HubSpot sends nothing.
 #
@@ -90,16 +90,7 @@ jobs:
 
       - name: Publish feed
         if: steps.run.outputs.status == '0' && github.event.inputs.dry_run != 'true'
-        env:
-          FEED_DEPLOY_KEY: ${{ secrets.FEED_DEPLOY_KEY }}
-          FEED_REPO_DIR: ${{ runner.temp }}/feedrepo
-        run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$FEED_DEPLOY_KEY" > ~/.ssh/feed_key && chmod 600 ~/.ssh/feed_key
-          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
-          export GIT_SSH_COMMAND="ssh -i ~/.ssh/feed_key -o IdentitiesOnly=yes"
-          scripts/publish_feed.sh 2>&1 | tee -a run.log
-          rm -f ~/.ssh/feed_key
+        run: scripts/publish_feed.sh 2>&1 | tee -a run.log
 
       # Save only after a successful publish (or a quiet day), so a failed publish never marks
       # measures as sent.

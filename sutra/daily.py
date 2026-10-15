@@ -36,8 +36,8 @@ STRONG_TEXT_KW = ["DDEC", "Departamento de Desarrollo Económico y Comercio",
                   "Department of Economic Development and Commerce", "Invest Puerto Rico",
                   "Ley 60", "código de incentivos"]
 
-FEED_URL = os.environ.get("FEED_URL", "https://bestedc.github.io/ipr-sutra-feed/sutra.xml")
-LOGO_URL = os.environ.get("LOGO_URL", "https://bestedc.github.io/ipr-sutra-feed/assets/investpr-logo-horizontal-white.png")
+FEED_URL = os.environ.get("FEED_URL", "https://bestedc.github.io/ipr-sutra-monitor/sutra.xml")
+LOGO_URL = os.environ.get("LOGO_URL", "https://bestedc.github.io/ipr-sutra-monitor/assets/investpr-logo-horizontal-white.png")
 FEED_TITLE = "InvestPR Legislative Monitor"
 
 # HubSpot's RSS email fetches at 05:45 US/Eastern = 09:45 UTC (EDT) / 10:45 UTC (EST).

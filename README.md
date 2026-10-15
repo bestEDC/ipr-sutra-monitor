@@ -8,9 +8,9 @@ A daily email alert of new Puerto Rico bills and resolutions on [SUTRA](https://
 01:47 UTC  GitHub Actions  .github/workflows/daily-alert.yml
              ├─ restore state/state.json from the `state` branch
              ├─ python -m sutra.daily   scan new IDs → keyword match → movement → Claude summaries → render
-             ├─ scripts/publish_feed.sh  out/sutra.xml → bestEDC/ipr-sutra-feed (GitHub Pages)
+             ├─ scripts/publish_feed.sh  out/sutra.xml → gh-pages branch (GitHub Pages)
              └─ scripts/state_save.sh   state back to the `state` branch
-05:45 ET   HubSpot RSS email fetches https://bestedc.github.io/ipr-sutra-feed/sutra.xml
+05:45 ET   HubSpot RSS email fetches https://bestedc.github.io/ipr-sutra-monitor/sutra.xml
            and mails the item if its <guid> is new
 ```
 
@@ -37,7 +37,6 @@ Matching ignores accents and capitalization. Keywords live in `sutra_scan.py` (`
 ## Secrets and variables
 
 - `CLAUDE_CODE_OAUTH_TOKEN`: one-year token from `claude setup-token`. Never set `ANTHROPIC_API_KEY`.
-- `FEED_DEPLOY_KEY`: SSH deploy key with write access to `bestEDC/ipr-sutra-feed`.
 - Variable `CLAUDE_TOKEN_ISSUED` (YYYY-MM-DD): drives the token-age warning.
 
 ## Running by hand

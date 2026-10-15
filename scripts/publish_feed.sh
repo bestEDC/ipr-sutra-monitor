@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
-# Push out/sutra.xml to the public Pages repo that HubSpot's RSS email reads.
+# Push out/sutra.xml to this repo's `gh-pages` branch, served at
+# https://bestedc.github.io/ipr-sutra-monitor/sutra.xml, which HubSpot's RSS email reads.
 # A new <guid> in the feed IS the send, so this only runs when sutra.daily exited 0.
-#   FEED_REPO_URL  git remote of the Pages repo (SSH, with a deploy key in CI)
-#   FEED_REPO_DIR  working clone location
+# Uses the workflow's own GITHUB_TOKEN (contents: write); no deploy key needed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-REPO="${FEED_REPO_DIR:-$PWD/.feedrepo}"
-FEED_REPO_URL="${FEED_REPO_URL:-git@github.com:bestEDC/ipr-sutra-feed.git}"
 [ -s out/sutra.xml ] || { echo "publish: out/sutra.xml missing" >&2; exit 1; }
-[ -d "$REPO/.git" ] || git clone -q --depth 1 "$FEED_REPO_URL" "$REPO"
-git -C "$REPO" pull -q --rebase origin main
-cp out/sutra.xml "$REPO/sutra.xml"
-if git -C "$REPO" diff --quiet -- sutra.xml; then
+site="$(mktemp -d)"
+trap 'rm -rf "$site"' EXIT
+git fetch -q origin gh-pages
+git worktree add -q "$site" origin/gh-pages
+cp out/sutra.xml "$site/sutra.xml"
+if git -C "$site" diff --quiet -- sutra.xml 2>/dev/null && git -C "$site" ls-files --error-unmatch sutra.xml >/dev/null 2>&1; then
     echo "feed unchanged"
-    exit 0
+else
+    git -C "$site" add sutra.xml
+    git -C "$site" -c user.name="investpr-sutra-monitor" -c user.email="sutra-monitor@investpr.invalid" \
+        commit -qm "Alert $(date -u +%F)"
+    git -C "$site" push -q origin HEAD:gh-pages
+    echo "published https://bestedc.github.io/ipr-sutra-monitor/sutra.xml"
 fi
-git -C "$REPO" add sutra.xml
-git -C "$REPO" -c user.name="investpr-sutra-monitor" -c user.email="sutra-monitor@investpr.invalid" \
-    commit -qm "Alert $(date -u +%F)"
-git -C "$REPO" push -q origin HEAD:main
-echo "published https://bestedc.github.io/ipr-sutra-feed/sutra.xml"
+git worktree remove --force "$site"
