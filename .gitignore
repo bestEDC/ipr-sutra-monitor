@@ -9,3 +9,5 @@ reports/
 mockups/
 *.log
 PLAN.md
+.feed_site/
+.keys/
