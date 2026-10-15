@@ -18,6 +18,10 @@ on:
         description: "Build the alert but do not publish or save state"
         type: boolean
         default: false
+      ignore_cutoff:
+        description: "Run even after the 09:30 UTC publish cutoff (testing)"
+        type: boolean
+        default: false
 
 concurrency:
   group: daily-alert
@@ -74,7 +78,8 @@ jobs:
         run: |
           set +e
           python -m sutra.daily --state state/state.json --out out \
-            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }} 2>&1 | tee run.log
+            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }} \
+            ${{ github.event.inputs.ignore_cutoff == 'true' && '--ignore-cutoff' || '' }} 2>&1 | tee run.log
           status=${PIPESTATUS[0]}
           set -e
           echo "status=$status" >> "$GITHUB_OUTPUT"
