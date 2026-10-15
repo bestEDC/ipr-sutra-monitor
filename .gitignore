@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+out/
+state/
+data/
+reports/
+mockups/
+*.log
+PLAN.md

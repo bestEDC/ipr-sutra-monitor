@@ -1,0 +1,155 @@
+# InvestPR Legislative Monitor (SUTRA): the unattended daily alert.
+#
+# The run writes sutra.xml to the public Pages repo bestEDC/ipr-sutra-feed. HubSpot's RSS email
+# fetches it at 05:45 US/Eastern and mails the item if its <guid> is new. No matches means no
+# new guid, so HubSpot sends nothing.
+#
+# 01:47 UTC = 21:47 AST the evening before. GitHub's scheduler can start hours late (media
+# monitoring measured 4-12 h), and sutra.daily refuses to publish after 09:30 UTC, so a very
+# late run banks its findings for the next day instead of publishing an alert nobody gets.
+name: Daily alert
+
+on:
+  schedule:
+    - cron: "47 1 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build the alert but do not publish or save state"
+        type: boolean
+        default: false
+
+concurrency:
+  group: daily-alert
+  cancel-in-progress: false
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write   # push refs/heads/state
+      issues: write     # failure alert
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils antiword
+          pip install -r requirements.txt
+
+      - name: Install Claude Code
+        env:
+          DISABLE_AUTOUPDATER: "1"
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s stable
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # A failed probe does not stop the run: the alert still goes out with fallback text.
+      - name: Probe Claude authentication
+        continue-on-error: true
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          DISABLE_AUTOUPDATER: "1"
+        run: |
+          "$HOME/.local/bin/claude" -p 'Reply with exactly: OK' --output-format json | head -c 400
+
+      - name: Restore state
+        id: restore
+        run: scripts/state_restore.sh
+
+      - name: Run
+        id: run
+        env:
+          # One-year subscription token from `claude setup-token`. Never set ANTHROPIC_API_KEY:
+          # it takes precedence and bills the API.
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          DISABLE_AUTOUPDATER: "1"
+        run: |
+          set +e
+          python -m sutra.daily --state state/state.json --out out \
+            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }} 2>&1 | tee run.log
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          case "$status" in
+            0) echo "::notice::Alert built." ;;
+            3) echo "::notice::No new matches or movement today; nothing to send." ;;
+            5) echo "::warning::Run started after the 09:30 UTC cutoff; findings carry to tomorrow." ;;
+            *) exit "$status" ;;
+          esac
+          if grep -q '^SUMMARY DEGRADED' run.log; then
+            echo "::warning::Claude was unavailable; headlines and why-it-matters used fallback text."
+          fi
+
+      - name: Publish feed
+        if: steps.run.outputs.status == '0' && github.event.inputs.dry_run != 'true'
+        env:
+          FEED_DEPLOY_KEY: ${{ secrets.FEED_DEPLOY_KEY }}
+          FEED_REPO_DIR: ${{ runner.temp }}/feedrepo
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$FEED_DEPLOY_KEY" > ~/.ssh/feed_key && chmod 600 ~/.ssh/feed_key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/feed_key -o IdentitiesOnly=yes"
+          scripts/publish_feed.sh 2>&1 | tee -a run.log
+          rm -f ~/.ssh/feed_key
+
+      # Save only after a successful publish (or a quiet day), so a failed publish never marks
+      # measures as sent.
+      - name: Save state
+        if: >-
+          steps.restore.outcome == 'success' && github.event.inputs.dry_run != 'true' &&
+          (steps.run.outputs.status == '3' || steps.run.outputs.status == '0')
+        run: scripts/state_save.sh
+
+      - name: Summarize the run
+        if: always()
+        run: |
+          {
+            echo "## Legislative alert: $(date -u +%F)"
+            echo ''
+            grep -E '^(scan:|new on SUTRA|matches:|movement:|summaries:|SUMMARY DEGRADED|wrote |published|nothing to send|TOO LATE|RUN FAILED|SCAN FAILED)' run.log 2>/dev/null | sed 's/^/    /' || echo '    (no run.log)'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: alert-${{ github.run_number }}
+          path: |
+            run.log
+            out/preview.html
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Token age check
+        if: always()
+        env:
+          TOKEN_ISSUED: ${{ vars.CLAUDE_TOKEN_ISSUED || '' }}
+        run: |
+          if [ -n "$TOKEN_ISSUED" ]; then
+            age=$(( ( $(date -u +%s) - $(date -u -d "$TOKEN_ISSUED" +%s) ) / 86400 ))
+            echo "Claude OAuth token age: ${age} days"
+            [ "$age" -ge 330 ] && echo "::warning::Claude token is ${age} days old and expires at 365. Run claude setup-token and update the secret + CLAUDE_TOKEN_ISSUED." || true
+          fi
+
+      - name: Alert on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="Daily alert FAILED"
+          body=$(printf 'Run: %s\n\n```\n%s\n```' "$RUN_URL" "$(grep -E 'FAILED|error|REFUSING' run.log 2>/dev/null | head -8)")
+          existing=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then gh issue comment "$existing" --repo "$REPO" --body "$body"
+          else gh issue create --repo "$REPO" --title "$title — $(date -u +%F)" --body "$body"; fi

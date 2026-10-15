@@ -1,0 +1,35 @@
+# Can a GitHub runner reach SUTRA? Fetches one measure page and one document from the
+# runner's own IP. Run it once before go-live and whenever the daily scan reports fetch errors.
+name: Probe SUTRA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils antiword
+          pip install -r requirements.txt
+      - name: Probe
+        run: |
+          python - <<'PY' | tee probe.log
+          import sys, tempfile
+          sys.path.insert(0, ".")
+          import sutra_scan as s
+          m = s.parse_measure(162562, s.fetch(f"{s.BASE}/medidas/162562"))
+          print("measure page:", "OK" if m and m["numero"] == "PS1514" else f"FAILED {m!r}")
+          t = s.fetch_document_text(m, tempfile.mkdtemp()) if m else None
+          print("pdf document:", f"OK ({len(t.split())} words)" if t and len(t.split()) > 100 else "FAILED")
+          d = {"numero": "PC1477", "documentos": ["https://sutra.oslpr.org/SutraFilesGen/162504/PC1477.docx"]}
+          t = s.fetch_document_text(d, tempfile.mkdtemp())
+          print("docx document:", f"OK ({len(t.split())} words)" if t and len(t.split()) > 100 else "FAILED")
+          PY
+          { echo '## SUTRA probe'; echo '```'; cat probe.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          ! grep -q FAILED probe.log
