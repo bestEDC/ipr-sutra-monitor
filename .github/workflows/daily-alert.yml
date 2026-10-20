@@ -30,7 +30,8 @@ concurrency:
 jobs:
   alert:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Long enough to wait out a subscription usage limit that lifts before the 09:30 UTC cutoff.
+    timeout-minutes: 350
     permissions:
       contents: write   # push refs/heads/state
       issues: write     # failure alert
@@ -56,13 +57,23 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       # A failed probe does not stop the run: the alert still goes out with fallback text.
+      # Print the CLI's `result` (the reason), not the head of its JSON: the 2026-10-16/17 logs cut
+      # off before the reason and nobody could tell a usage limit from a bad token.
       - name: Probe Claude authentication
         continue-on-error: true
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           DISABLE_AUTOUPDATER: "1"
         run: |
-          "$HOME/.local/bin/claude" -p 'Reply with exactly: OK' --output-format json | head -c 400
+          out=$("$HOME/.local/bin/claude" -p 'Reply with exactly: OK' --output-format json 2>&1) || true
+          if printf '%s' "$out" | jq -e '.is_error != true and .result != null' >/dev/null 2>&1; then
+            echo "probe ok: $(printf '%s' "$out" | jq -r '.result' | head -c 200)"
+          else
+            reason=$(printf '%s' "$out" | jq -r '.result // empty' 2>/dev/null | head -c 400)
+            [ -n "$reason" ] || reason=$(printf '%s' "$out" | head -c 400)
+            echo "::warning::Claude probe failed: $reason"
+            exit 1
+          fi
 
       - name: Restore state
         id: restore

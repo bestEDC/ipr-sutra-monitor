@@ -69,6 +69,36 @@ def missing() -> bool:
 # and second-counting to diagnose because nothing recorded which it was.
 last_failure: str = ""
 
+# When the CLI refused because the subscription's usage limit is exhausted, the epoch second at
+# which it lifts (the CLI appends "|<epoch>" to that message), else None. Callers can wait for it.
+last_retry_after: Optional[int] = None
+
+_LIMIT_RE = re.compile(r"usage limit|rate limit|hit your limit|limit reached", re.I)
+_EPOCH_RE = re.compile(r"\|(\d{10})\b")
+
+
+def _failure_message(stdout: str, stderr: str) -> str:
+    """The CLI's own explanation of a failed call. On exit 1 the CLI still prints its JSON
+    result object, and the reason ("Failed to authenticate…", "usage limit reached|…") is in
+    its `result` field, 400+ bytes in. Dumping the first 300 bytes of that object, as the
+    2026-10-16/17 runs did, records the session id and zero token counts and loses the reason."""
+    global last_retry_after
+    last_retry_after = None
+    msg = ""
+    try:
+        payload = json.loads((stdout or "").strip())
+        if isinstance(payload, dict):
+            msg = str(payload.get("result") or "").strip()
+    except json.JSONDecodeError:
+        pass
+    if not msg:
+        msg = ((stderr or "").strip() or (stdout or "").strip())[:300] or "no output"
+    if _LIMIT_RE.search(msg):
+        m = _EPOCH_RE.search(msg)
+        if m:
+            last_retry_after = int(m.group(1))
+    return msg[:400]
+
 
 def run_json(prompt: str, timeout: int) -> Optional[dict]:
     """Run a prompt and return the JSON object the model emitted, or None.
@@ -94,10 +124,12 @@ def run_json(prompt: str, timeout: int) -> Optional[dict]:
             capture_output=True, text=True, timeout=timeout,
         )
         if proc.returncode != 0:
-            err = (proc.stderr or proc.stdout or "").strip()[:300]
-            last_failure = f"exit {proc.returncode} — {err or 'no output'}"
+            last_failure = f"exit {proc.returncode} — {_failure_message(proc.stdout, proc.stderr)}"
             return None
         payload = json.loads(proc.stdout)
+        if payload.get("is_error"):
+            last_failure = f"error — {_failure_message(proc.stdout, proc.stderr)}"
+            return None
         raw = payload.get("result", "")
         match = re.search(r"\{.*\}", raw, re.DOTALL)
         if match is None:

@@ -3,6 +3,7 @@
     python -m sutra.daily --state state/state.json --out out/            # normal run
     python -m sutra.daily --init --first-day 2026-10-15 --state state/state.json   # first-time setup, no email
     python -m sutra.daily ... --now 2026-10-14T02:00:00Z --dry-run       # replay a past day locally
+    python -m sutra.daily --repair-summaries --state state/state.json    # redo headlines that went out as fallback text
 
 Delivery is a HubSpot RSS email that fetches out/sutra.xml from GitHub Pages and mails any item
 whose <guid> is new. So writing a feed with a new guid IS the send; writing nothing sends nothing.
@@ -19,6 +20,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from email.utils import format_datetime
@@ -43,6 +45,12 @@ FEED_TITLE = "InvestPR Legislative Monitor"
 # HubSpot's RSS email fetches at 05:45 US/Eastern = 09:45 UTC (EDT) / 10:45 UTC (EST).
 # A feed written after this would never be mailed for today, so the run backs off instead.
 PUBLISH_CUTOFF_UTC = (9, 30)
+# Summaries: when the Claude CLI fails, wait this long between attempts (seconds). If the CLI says
+# the subscription's usage limit lifts at a given time, the run waits for that instead, as long as
+# it still lands before the publish cutoff (minus SUMMARY_DEADLINE_MARGIN for the publish itself).
+SUMMARY_RETRY_WAITS = (120, 300, 600)
+SUMMARY_DEADLINE_MARGIN = timedelta(minutes=15)
+FALLBACK_WHY = "Summary unavailable today; see the official title below."
 SEND_MOVEMENT_ONLY = True        # a day with movement but no new matches still sends
 PENDING_DOC_DAYS = 14            # keep re-checking a measure whose document is not posted yet
 SCAN_BACK = 60                   # re-read this many IDs below the last max (late-numbered filings)
@@ -242,8 +250,32 @@ def keyword_passages(m, cache_dir, per_kw=2, width=300):
     return out
 
 
-def summarize(items, cache_dir):
-    """Returns {id: {headline, why}}; missing ids fall back in the caller."""
+def summary_wait(attempt, deadline, now=None):
+    """Seconds to wait before summary attempt `attempt`+1, or None to give up.
+
+    deadline=None means never wait (replays, --ignore-cutoff): three quick attempts, as before.
+    Otherwise a usage-limit refusal waits until the limit lifts, and any other failure waits
+    SUMMARY_RETRY_WAITS between attempts, but never past the deadline."""
+    if deadline is None:
+        return 0 if attempt < 3 else None
+    now = now or datetime.now(timezone.utc)
+    if claude_cli.last_retry_after:
+        lifts = datetime.fromtimestamp(claude_cli.last_retry_after, timezone.utc) + timedelta(seconds=60)
+        if lifts > deadline:
+            log(f"summaries: usage limit lifts {lifts:%H:%M} UTC, after the {deadline:%H:%M} UTC deadline")
+            return None
+        return max(60, int((lifts - now).total_seconds()))
+    if attempt > len(SUMMARY_RETRY_WAITS):
+        return None
+    wait = SUMMARY_RETRY_WAITS[attempt - 1]
+    if now + timedelta(seconds=wait) > deadline:
+        return None
+    return wait
+
+
+def summarize(items, cache_dir, deadline=None):
+    """Returns {id: {headline, why}}; missing ids fall back in the caller.
+    deadline: aware UTC datetime by which the summaries must exist (see summary_wait)."""
     blocks = []
     for m in items:
         blocks.append(json.dumps({"id": m["id"], "number": m["numero"], "type": m["tipo"],
@@ -251,7 +283,8 @@ def summarize(items, cache_dir):
                                   "text_excerpt": excerpt(m, cache_dir),
                                   "keyword_passages": keyword_passages(m, cache_dir)}, ensure_ascii=False))
     prompt = PROMPT + "\n".join(blocks)
-    for attempt in range(3):
+    attempt = 0
+    while True:
         out = claude_cli.run_json(prompt, timeout=300)
         if out and isinstance(out.get("items"), list):
             res = {}
@@ -263,15 +296,61 @@ def summarize(items, cache_dir):
                     pass
             log(f"summaries: {len(res)}/{len(items)} from Claude")
             return res
-        log(f"summaries: attempt {attempt + 1} failed: {claude_cli.last_failure}")
+        attempt += 1
+        log(f"summaries: attempt {attempt} failed: {claude_cli.last_failure}")
+        wait = summary_wait(attempt, deadline)
+        if wait is None:
+            break
+        if wait:
+            log(f"summaries: retrying in {wait // 60} min")
+            time.sleep(wait)
     log("SUMMARY DEGRADED: Claude unavailable, sending with fallback text")
     return {}
+
+
+def summary_deadline(now, args):
+    """When today's summaries must be done, or None when waiting makes no sense (replays, tests)."""
+    if args.now or args.ignore_cutoff:
+        return None
+    return now.replace(hour=PUBLISH_CUTOFF_UTC[0], minute=PUBLISH_CUTOFF_UTC[1], second=0,
+                       microsecond=0) - SUMMARY_DEADLINE_MARGIN
+
+
+def repair_candidates(state, pages, cache_dir):
+    """Tracked measures whose stored headline/why is fallback text: a day when Claude was down
+    wrote the fallback into `tracked`, and every later movement entry repeated it. Returns
+    measure dicts ready for summarize(); `pages` maps tracked id → fetched measure."""
+    out = []
+    for mid, t in state["tracked"].items():
+        if not (t.get("summary_pending") or t.get("why") == FALLBACK_WHY):
+            continue
+        m = pages.get(mid)
+        if not isinstance(m, dict):
+            continue
+        status, text_kw = text_keywords(m, cache_dir)   # also fills the text cache for excerpt()
+        m["kw_display"] = t.get("keywords") or list(dict.fromkeys(scan.match_keywords(m["titulo"]) + text_kw))
+        out.append(m)
+    return out
+
+
+def apply_repairs(state, repairs, summ):
+    fixed = 0
+    for m in repairs:
+        s = summ.get(m["id"])
+        if s:
+            t = state["tracked"][str(m["id"])]
+            t["headline"], t["why"] = s["headline"], s["why"]
+            t.pop("summary_pending", None)
+            fixed += 1
+    if repairs:
+        log(f"repaired summaries: {fixed}/{len(repairs)} tracked measures")
+    return fixed
 
 
 def fallback_summary(m):
     words = m["titulo"].split()
     return {"headline": " ".join(words[:14]) + (" …" if len(words) > 14 else ""),
-            "why": "Summary unavailable today; see the official title below."}
+            "why": FALLBACK_WHY}
 
 
 # ---------------------------------------------------------------- feed
@@ -375,11 +454,15 @@ def run(args):
             save_state(args.state, state)
         return 3
 
-    # 5. Headlines + why it matters
-    summ = summarize(matches, cache) if matches else {}
+    # 5. Headlines + why it matters (also redo any tracked entry still carrying fallback text)
+    repairs = repair_candidates(state, pages, cache)
+    summ = summarize(matches + repairs, cache, deadline=summary_deadline(now, args)) if matches or repairs else {}
+    apply_repairs(state, repairs, summ)
     new_items = []
     for m in matches:
-        s = summ.get(m["id"]) or fallback_summary(m)
+        s = summ.get(m["id"])
+        m["summary_ok"] = s is not None
+        s = s or fallback_summary(m)
         m.update(s)
         filed = datetime.strptime(m["fecha_radicacion"], "%Y-%m-%d").date()
         links = [("View on SUTRA", m["url"])]
@@ -421,8 +504,11 @@ def run(args):
     for m in matches:
         state["tracked"][str(m["id"])] = {
             "num": scan_number(m), "filed": m["fecha_radicacion"], "first_sent": today,
-            "headline": m["headline"], "why": m["why"], "events": m["eventos"], "docs": m["documentos"],
+            "headline": m["headline"], "why": m["why"], "keywords": m["kw_display"],
+            "events": m["eventos"], "docs": m["documentos"],
             "final": bool(any(FINAL_EVENT.search(ev["evento"]) for ev in m["eventos"]))}
+        if not m["summary_ok"]:
+            state["tracked"][str(m["id"])]["summary_pending"] = True
     for mv in movement:
         t, m = mv["t"], mv["m"]
         t["events"], t["docs"] = m["eventos"], m["documentos"]
@@ -446,6 +532,25 @@ def scan_number(m):
     return m["numero"]
 
 
+def repair_summaries(args):
+    state = load_state(args.state)
+    cache = args.cache or tempfile.mkdtemp(prefix="sutra-docs-")
+    os.makedirs(cache, exist_ok=True)
+    ids = [mid for mid, t in state["tracked"].items() if t.get("summary_pending") or t.get("why") == FALLBACK_WHY]
+    if not ids:
+        log("repair: no tracked measure carries fallback text")
+        return 0
+    with ThreadPoolExecutor(6) as ex:
+        pages = dict(zip(ids, ex.map(lambda i: get_measure(int(i)), ids)))
+    repairs = repair_candidates(state, pages, cache)
+    log("repair: " + " ".join(state["tracked"][str(m["id"])]["num"] for m in repairs))
+    summ = summarize(repairs, cache)
+    fixed = apply_repairs(state, repairs, summ)
+    if fixed and not args.dry_run:
+        save_state(args.state, state)
+    return 0 if fixed == len(ids) else 1
+
+
 def main():
     ap = argparse.ArgumentParser(description="Daily SUTRA legislative alert")
     ap.add_argument("--state", default="state/state.json")
@@ -457,7 +562,11 @@ def main():
     ap.add_argument("--init", action="store_true", help="create a fresh state from live SUTRA and exit")
     ap.add_argument("--start-id", type=int, default=162400, help="--init: scan upward from this ID")
     ap.add_argument("--first-day", help="--init: first filing date (YYYY-MM-DD) the alerts should cover")
+    ap.add_argument("--repair-summaries", action="store_true",
+                    help="regenerate headline/why for tracked measures that got fallback text, save state, exit")
     args = ap.parse_args()
+    if args.repair_summaries:
+        return repair_summaries(args)
     if args.init:
         if not args.first_day:
             sys.exit("--init needs --first-day YYYY-MM-DD")
