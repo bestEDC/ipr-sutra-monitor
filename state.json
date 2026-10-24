@@ -1,0 +1,805 @@
+{
+ "created": "2026-10-15T20:12:02+00:00",
+ "last_max_id": 162740,
+ "pending": {},
+ "seen": {
+  "162400": "1992-01-13",
+  "162401": "1992-01-13",
+  "162402": "1992-01-13",
+  "162403": "1992-01-13",
+  "162404": "1992-01-13",
+  "162405": "1992-01-13",
+  "162406": "1992-01-13",
+  "162407": "1992-01-13",
+  "162408": "1992-01-13",
+  "162409": "1992-01-13",
+  "162410": "1992-01-14",
+  "162411": "2026-09-30",
+  "162412": "2026-09-30",
+  "162413": "2026-09-30",
+  "162414": "2026-09-30",
+  "162415": "2026-09-28",
+  "162417": "2026-10-01",
+  "162418": "1992-01-14",
+  "162419": "1992-01-16",
+  "162420": "1992-01-16",
+  "162421": "1992-01-16",
+  "162422": "1992-01-16",
+  "162423": "1992-01-16",
+  "162424": "1992-01-16",
+  "162425": "1992-01-16",
+  "162426": "2026-10-01",
+  "162427": "2026-10-01",
+  "162428": "2026-10-01",
+  "162429": "2026-10-01",
+  "162430": "2026-10-01",
+  "162431": "2026-10-01",
+  "162432": "2026-10-01",
+  "162433": "2026-10-02",
+  "162434": "2026-09-28",
+  "162435": "2026-09-28",
+  "162436": "2026-09-29",
+  "162437": "2026-09-29",
+  "162438": "2026-09-29",
+  "162439": "2026-09-29",
+  "162440": "2026-09-29",
+  "162441": "2026-09-29",
+  "162442": "2026-09-29",
+  "162443": "2026-09-30",
+  "162444": "2026-09-30",
+  "162445": "2026-09-30",
+  "162446": "2026-10-01",
+  "162447": "2026-09-28",
+  "162448": "2026-09-29",
+  "162449": "2026-09-28",
+  "162450": "2026-09-28",
+  "162451": "2026-09-28",
+  "162452": "2026-09-28",
+  "162453": "2026-09-28",
+  "162454": "2026-09-28",
+  "162455": "2026-09-29",
+  "162456": "2026-09-29",
+  "162457": "2026-10-05",
+  "162458": "2026-10-05",
+  "162459": "2026-10-06",
+  "162460": "2026-10-06",
+  "162461": "1992-01-16",
+  "162462": "1992-01-16",
+  "162463": "1992-01-17",
+  "162464": "1992-01-17",
+  "162465": "1992-01-17",
+  "162466": "1992-01-21",
+  "162467": "1992-01-21",
+  "162468": "1992-01-22",
+  "162469": "1992-01-23",
+  "162470": "1992-01-23",
+  "162471": "1992-01-23",
+  "162472": "1992-01-24",
+  "162473": "1992-01-24",
+  "162474": "1992-01-24",
+  "162475": "1992-01-24",
+  "162476": "1992-01-24",
+  "162477": "1992-01-24",
+  "162478": "1986-03-25",
+  "162479": "2026-10-07",
+  "162480": "2026-10-07",
+  "162481": "2026-10-07",
+  "162482": "2026-10-07",
+  "162483": "1992-01-24",
+  "162484": "1992-01-24",
+  "162485": "1992-01-24",
+  "162486": "1992-01-24",
+  "162487": "1992-01-24",
+  "162488": "1992-01-27",
+  "162489": "1992-01-27",
+  "162490": "1992-01-27",
+  "162491": "1992-01-27",
+  "162492": "1992-01-27",
+  "162493": "1992-01-27",
+  "162494": "1992-01-27",
+  "162495": "1992-01-27",
+  "162496": "1992-01-27",
+  "162497": "1992-01-27",
+  "162498": "2026-10-05",
+  "162499": "2026-10-05",
+  "162500": "2026-10-05",
+  "162501": "2026-10-05",
+  "162502": "2026-10-05",
+  "162503": "2026-10-05",
+  "162504": "2026-10-05",
+  "162505": "2026-10-06",
+  "162506": "2026-10-06",
+  "162507": "2026-10-06",
+  "162508": "2026-10-06",
+  "162509": "2026-10-06",
+  "162510": "2026-10-06",
+  "162511": "2026-10-06",
+  "162512": "2026-10-06",
+  "162513": "2026-10-06",
+  "162514": "2026-10-06",
+  "162515": "2026-10-07",
+  "162516": "2026-10-07",
+  "162517": "2026-10-05",
+  "162518": "2026-10-05",
+  "162519": "2026-10-06",
+  "162520": "2026-10-06",
+  "162521": "2026-10-05",
+  "162522": "2026-10-06",
+  "162523": "2026-10-06",
+  "162524": "2026-10-07",
+  "162527": "2026-10-08",
+  "162534": "2026-10-08",
+  "162535": "2026-10-08",
+  "162538": "2026-10-08",
+  "162539": "2026-10-08",
+  "162540": "2026-10-08",
+  "162541": "2026-10-08",
+  "162542": "2026-10-09",
+  "162543": "2026-10-08",
+  "162544": "2026-10-08",
+  "162545": "2026-10-08",
+  "162546": "2026-10-08",
+  "162547": "2026-10-09",
+  "162548": "2026-10-09",
+  "162549": "2026-10-09",
+  "162550": "2026-10-09",
+  "162551": "2026-10-08",
+  "162552": "2026-10-08",
+  "162553": "2026-10-08",
+  "162554": "2026-10-08",
+  "162555": "2026-10-08",
+  "162556": "2026-10-08",
+  "162557": "2026-10-08",
+  "162558": "2026-10-08",
+  "162559": "2026-10-08",
+  "162560": "2026-10-13",
+  "162561": "2026-10-13",
+  "162562": "2026-10-13",
+  "162563": "2026-10-13",
+  "162564": "2026-10-13",
+  "162565": "2026-10-13",
+  "162566": "2026-10-13",
+  "162567": "2026-10-13",
+  "162568": "2026-10-13",
+  "162569": "2026-10-13",
+  "162570": "2026-10-13",
+  "162571": "2026-10-13",
+  "162572": "2026-10-13",
+  "162573": "2026-10-13",
+  "162574": "2026-10-13",
+  "162575": "2026-10-14",
+  "162576": "2026-10-14",
+  "162577": "2026-10-14",
+  "162578": "2026-10-14",
+  "162579": "2026-10-14",
+  "162580": "2026-10-14",
+  "162581": "2026-10-14",
+  "162582": "2026-10-14",
+  "162583": "2026-10-14",
+  "162584": "2026-10-13",
+  "162585": "2026-10-13",
+  "162586": "2026-10-13",
+  "162587": "2026-10-13",
+  "162588": "2026-10-14",
+  "162589": "2026-10-14",
+  "162590": "2026-10-14",
+  "162591": "2026-10-14",
+  "162592": "2026-10-14",
+  "162593": "2026-10-14",
+  "162594": "2026-10-13",
+  "162595": "2026-10-14",
+  "162596": "2026-10-15",
+  "162597": "2026-10-14",
+  "162598": "1992-03-05",
+  "162599": "2026-10-15",
+  "162600": "2026-10-15",
+  "162601": "2026-10-15",
+  "162602": "2026-10-15",
+  "162607": "2026-10-15",
+  "162608": "2026-10-15",
+  "162609": "2026-10-15",
+  "162610": "2026-10-15",
+  "162611": "2026-10-15",
+  "162612": "2026-10-15",
+  "162613": "2026-10-15",
+  "162614": "2026-10-15",
+  "162615": "2026-10-15",
+  "162616": "2026-10-15",
+  "162617": "2026-10-15",
+  "162618": "2026-10-15",
+  "162619": "2026-10-15",
+  "162620": "2026-10-15",
+  "162621": "2026-10-15",
+  "162622": "2026-10-15",
+  "162623": "2026-10-15",
+  "162624": "2026-10-15",
+  "162625": "2026-10-15",
+  "162626": "2026-10-15",
+  "162627": "2026-10-15",
+  "162628": "2026-10-15",
+  "162629": "2026-10-15",
+  "162630": "2026-10-15",
+  "162631": "2026-10-15",
+  "162632": "2026-10-15",
+  "162633": "2026-10-15",
+  "162634": "2026-10-15",
+  "162635": "2026-10-15",
+  "162636": "2026-10-15",
+  "162637": "2026-10-15",
+  "162638": "2026-10-15",
+  "162639": "2026-10-15",
+  "162640": "2026-10-15",
+  "162641": "2026-10-15",
+  "162642": "2026-10-15",
+  "162643": "2026-10-15",
+  "162644": "2026-10-15",
+  "162645": "2026-10-15",
+  "162646": "2026-10-15",
+  "162648": "2026-10-16",
+  "162649": "2026-10-15",
+  "162657": "2026-10-16",
+  "162658": "2026-10-16",
+  "162659": "2026-10-16",
+  "162660": "2026-10-15",
+  "162661": "2026-10-16",
+  "162662": "2026-10-16",
+  "162663": "2026-10-16",
+  "162664": "2026-10-15",
+  "162665": "2026-10-16",
+  "162666": "2026-10-15",
+  "162667": "2026-10-15",
+  "162668": "2026-10-15",
+  "162669": "2026-10-15",
+  "162670": "2026-10-15",
+  "162671": "2026-10-15",
+  "162672": "2026-10-15",
+  "162673": "2026-10-15",
+  "162674": "2026-10-15",
+  "162675": "2026-10-15",
+  "162676": "2026-10-15",
+  "162677": "2026-10-15",
+  "162678": "2026-10-15",
+  "162679": "2026-10-16",
+  "162680": "2026-10-15",
+  "162681": "2026-10-15",
+  "162682": "2026-10-15",
+  "162683": "2026-10-19",
+  "162685": "2026-10-19",
+  "162686": "2026-10-19",
+  "162687": "2026-10-19",
+  "162688": "2026-10-19",
+  "162689": "2026-10-19",
+  "162690": "2026-10-19",
+  "162691": "2026-10-19",
+  "162692": "2026-10-19",
+  "162693": "2026-10-19",
+  "162694": "2026-10-19",
+  "162695": "2026-10-19",
+  "162696": "2026-10-19",
+  "162697": "2026-10-19",
+  "162698": "2026-10-19",
+  "162699": "2026-10-19",
+  "162700": "2026-10-19",
+  "162701": "2026-10-19",
+  "162702": "2026-10-19",
+  "162703": "2026-10-19",
+  "162704": "2026-10-19",
+  "162705": "2026-10-19",
+  "162706": "2026-10-19",
+  "162707": "2026-10-19",
+  "162708": "2026-10-19",
+  "162709": "2026-10-19",
+  "162710": "2026-10-19",
+  "162711": "2026-10-19",
+  "162712": "2026-10-20",
+  "162713": "2026-10-20",
+  "162714": "2026-10-20",
+  "162715": "2026-10-20",
+  "162716": "2026-10-19",
+  "162717": "2026-10-19",
+  "162718": "2026-10-19",
+  "162719": "2026-10-20",
+  "162720": "2026-10-20",
+  "162721": "2026-10-20",
+  "162722": "2026-10-20",
+  "162723": "2026-10-21",
+  "162724": "2026-10-21",
+  "162725": "2026-10-21",
+  "162726": "2026-10-21",
+  "162727": "2026-10-21",
+  "162728": "2026-10-19",
+  "162729": "2026-10-21",
+  "162730": "2026-10-21",
+  "162731": "2026-10-19",
+  "162732": "2026-10-21",
+  "162733": "2026-10-21",
+  "162734": "2026-10-21",
+  "162735": "2026-10-22",
+  "162736": "2026-10-22",
+  "162737": "2026-10-22",
+  "162738": "2026-10-22",
+  "162739": "2026-10-22",
+  "162740": "2026-10-23"
+ },
+ "tracked": {
+  "162596": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162596/ps1529-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/15/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-16",
+   "headline": "Raises Young Entrepreneurs financing program age limit to 35 at Economic Development Bank",
+   "num": "P. del S. 1529",
+   "why": "Widens eligibility for the Economic Development Bank's startup financing program for first-time business owners. The keyword match comes from the bank's name; the measure does not touch incentives or investment promotion."
+  },
+  "162599": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162599/PC1509.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/15/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-16",
+   "headline": "Moves workforce development programs from DDEC to the Department of Labor",
+   "num": "P. de la C. 1509",
+   "why": "Reorganizes who administers Puerto Rico's workforce training system, a factor in talent-pipeline discussions with investors. DDEC would keep its economic development, investment promotion, commerce and industry functions."
+  },
+  "162620": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162620/ps1536-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-17",
+   "headline": "Exempts children's lemonade stands from vendor licenses and municipal business taxes",
+   "num": "P. del S. 1536",
+   "why": "Youth entrepreneurship measure requested by CRECE. The DDEC match is incidental: the department is cited only as a provider of existing business-training courses for young people."
+  },
+  "162622": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162622/ps1538-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-17",
+   "headline": "Declares a Veterans Small Business Week in Puerto Rico each November",
+   "num": "P. del S. 1538",
+   "why": "Commemorative measure directing DDEC and other agencies to promote activities recognizing veteran-owned small businesses during the week. It creates no incentives, funding or programs."
+  },
+  "162635": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162635/ps1551-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-17",
+   "headline": "Extends single-use plastics ban moratorium to 2031 with phased transition",
+   "num": "P. del S. 1551",
+   "why": "Gives merchants, many dependent on imports, five more years to comply and assigns DDEC to design incentives, technical assistance and consolidated purchasing for small and medium businesses during the transition."
+  },
+  "162646": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162646/ps1551-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-17",
+   "headline": "Extends single-use plastics ban moratorium to 2031 with phased transition",
+   "num": "P. del S. 1551",
+   "why": "Gives merchants, many dependent on imports, five more years to comply and assigns DDEC to design incentives, technical assistance and consolidated purchasing for small and medium businesses during the transition."
+  },
+  "162658": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162658/ps1562-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/16/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-16",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Recognizes college student-athletes' right to be paid for name, image and likeness",
+   "num": "P. del S. 1562",
+   "why": "Incidental match. The bill concerns student-athlete rights and only notes that certain independent NIL entities would be governed by applicable sections of the Incentives Code (Ley 60-2019)."
+  },
+  "162664": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162664/PC1517.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Relevado de Comisión(es)",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Creates optional alternate tax regime and economic opportunity fund for exempt businesses under the Incentives Code",
+   "num": "P. de la C. 1517",
+   "why": "Amends Ley 60-2019 so DDEC can set a fixed 4%–15% income tax rate in decrees, with 15-year extensions. It also creates a fund to retain investment in services export, manufacturing, tourism and creative industries."
+  },
+  "162666": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162666/PC1518.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Creates mandatory uniform registry for short-term rentals and strengthens room occupancy tax enforcement",
+   "num": "P. de la C. 1518",
+   "why": "Tourism is a strategic economic sector, and short-term rentals are a large share of lodging demand and tax revenue. DDEC appears only incidentally in the matched text; the measure centers on the Tourism Company and municipalities."
+  },
+  "162671": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162671/PC1523.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Sets energy conditions and incentives for large data centers and AI computing in Puerto Rico",
+   "num": "P. de la C. 1523",
+   "why": "Conditions Incentives Code decrees for large data centers on own firm power and reserve capacity. It adds a 2% export income tax rate and sales tax exemptions, with DDEC roles and coordination with Invest Puerto Rico Inc. on promotion."
+  },
+  "162677": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162677/PC1529.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/15/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-15",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Requires solar canopy systems over large outdoor parking lots across Puerto Rico",
+   "num": "P. de la C. 1529",
+   "why": "This is an energy mandate rather than an incentives measure. DDEC's energy policy program sits on an interagency task force that seeks federal funds, incentives and financing to help covered entities comply."
+  },
+  "162679": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162679/PC1531.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/16/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/19/2026"
+    }
+   ],
+   "filed": "2026-10-16",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Exempts rental income from rehabilitated abandoned commercial buildings from income tax for ten years",
+   "num": "P. de la C. 1531",
+   "why": "Creates a tax incentive for rehabilitating commercial structures unused for five or more years, requiring investment of at least $150,000 or 30% of appraised value. It allows stacking with Ley 60-2019 benefits."
+  },
+  "162687": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162687/ps1570-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-19",
+   "final": false,
+   "first_sent": "2026-10-20",
+   "headline": "Revises Incentives Code physician decree criteria and sets 12% tax rate for fifteen years",
+   "num": "P. del S. 1570",
+   "why": "Amends Ley 60-2019 provisions on qualified physician decrees, adding requirements such as serving Plan Vital participants and hospital activity. It sets a 12% fixed income tax rate for 15 years, aimed at retaining and attracting physicians."
+  },
+  "162710": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162710/ps1592-26.pdf"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura del Senado",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-19",
+   "final": false,
+   "first_sent": "2026-10-21",
+   "headline": "Extends Código de Incentivos tax benefits to veteran-owned businesses and creates a veterans' entrepreneur agreement",
+   "keywords": [
+    "desarrollo económico",
+    "Ley 60",
+    "código de incentivos",
+    "incentivos",
+    "Departamento de Desarrollo Económico y Comercio",
+    "DDEC"
+   ],
+   "num": "P. del S. 1592",
+   "why": "Amends Ley 60-2019 to give veterans, National Guard and reservists, and spouses the Young Entrepreneur benefits without an age limit. It adds benefits for exempt businesses employing veterans, a DDEC federal-contracting assistance program, an annual fiscal-cost cap and an annual effectiveness report."
+  },
+  "162723": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162723/PC1539.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/21/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-21",
+   "final": false,
+   "first_sent": "2026-10-23",
+   "headline": "Creates a central registry of collectible government debts, with offsets against government payments",
+   "keywords": [
+    "incentivos"
+   ],
+   "num": "P. de la C. 1539",
+   "why": "Incidental match. The bill lets Hacienda withhold refunds and incentives it owes when a certified non-tax debt exists. It also adds debt-check requirements to government contracting."
+  },
+  "162728": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162728/RCC0423.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-19",
+   "final": false,
+   "first_sent": "2026-10-23",
+   "headline": "Transfers Río Camuy Caves National Park title from DRNA to DDEC",
+   "keywords": [
+    "desarrollo económico",
+    "Departamento de Desarrollo Económico y Comercio"
+   ],
+   "num": "R. C. de la C. 423",
+   "why": "DDEC, through its Tourism Office, would own and manage the park for conservation, operation and tourist development. The measure cites the Public-Private Partnerships Act as a possible framework for developing the site."
+  },
+  "162730": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162730/RCC0425.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/21/2026"
+    },
+    {
+     "evento": "Se da consentimiento para incluir medida en agenda de presente sesión",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-21",
+   "final": false,
+   "first_sent": "2026-10-23",
+   "headline": "Creates $60 million one-time energy cost relief for low-income households and small businesses",
+   "keywords": [
+    "desarrollo económico",
+    "Departamento de Desarrollo Económico y Comercio",
+    "DDEC"
+   ],
+   "num": "R. C. de la C. 425",
+   "why": "DDEC would receive $30 million to give one-time electric bill credits to micro, small and medium businesses hit by higher fuel and power purchase charges. It sets eligibility, maximum benefits and reporting requirements."
+  },
+  "162731": {
+   "docs": [
+    "https://sutra.oslpr.org/SutraFilesGen/162731/RC0850.docx"
+   ],
+   "events": [
+    {
+     "evento": "Radicado",
+     "fecha": "10/19/2026"
+    },
+    {
+     "evento": "Aparece en Primera Lectura de la Cámara",
+     "fecha": "10/22/2026"
+    },
+    {
+     "evento": "Referido a Comisión(es)",
+     "fecha": "10/22/2026"
+    }
+   ],
+   "filed": "2026-10-19",
+   "final": false,
+   "first_sent": "2026-10-23",
+   "headline": "House committee to investigate government programs supporting women entrepreneurs, including the Women's Business Briefcase Act",
+   "keywords": [
+    "desarrollo económico",
+    "incentivos",
+    "Departamento de Desarrollo Económico y Comercio"
+   ],
+   "num": "R. de la C. 850",
+   "why": "The inquiry covers incentives, financing and DDEC-attached programs under Ley 81-2018, and may lead to changes in business-support programs. It also reviews coordination among agencies and the Economic Development Bank."
+  }
+ }
+}
