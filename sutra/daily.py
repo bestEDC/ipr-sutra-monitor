@@ -1,4 +1,4 @@
-"""Daily SUTRA legislative alert: scan → match → movement → summarize → render → feed.
+"""Daily SUTRA legislative alert: scan → match → movement (featured first) → summarize → render → feed.
 
     python -m sutra.daily --state state/state.json --out out/            # normal run
     python -m sutra.daily --init --first-day 2026-10-15 --state state/state.json   # first-time setup, no email
@@ -38,6 +38,10 @@ STRONG_TEXT_KW = ["DDEC", "Departamento de Desarrollo Económico y Comercio",
                   "Department of Economic Development and Commerce", "Invest Puerto Rico",
                   "Ley 60", "código de incentivos"]
 
+# Measures leadership follows by name (see featured.json). Their movement opens the email in a
+# section of its own; they are enrolled in `tracked` with featured=True the first run after listing.
+FEATURED_FILE = ROOT / "featured.json"
+
 FEED_URL = os.environ.get("FEED_URL", "https://bestedc.github.io/ipr-sutra-monitor/sutra.xml")
 LOGO_URL = os.environ.get("LOGO_URL", "https://bestedc.github.io/ipr-sutra-monitor/assets/investpr-logo-horizontal-white.png")
 FEED_TITLE = "InvestPR Legislative Monitor"
@@ -68,11 +72,15 @@ EVENTS_EN = [
     (r"^Referid[oa] a Comisi[oó]n\(es\)$", "referred to committee"),
     (r"^Remitid[oa] a Comisi[oó]n de Calendarios de la Cámara$", "sent to the House Calendar Committee"),
     (r"^Remitid[oa] a Comisi[oó]n de Asuntos Internos del Senado$", "sent to the Senate Internal Affairs Committee"),
+    (r"^Remitid[oa] a la Comisi[oó]n de Reglas y Calendario del Senado$", "sent to the Senate Rules and Calendar Committee"),
     (r"^En el Calendario de [OÓ]rdenes Especiales de la Cámara$", "placed on the House special orders calendar"),
     (r"^En el Calendario de [OÓ]rdenes Especiales del Senado$", "placed on the Senate special orders calendar"),
+    (r"^Entirillado del Informe$", "committee report's marked-up text posted"),
+    (r"^Aprobad[oa] con enmiendas del informe$", "approved with the committee report's amendments"),
     (r"^Aprobad[oa] con enmiendas en sala$", "approved with floor amendments"),
-    (r"^Aprobad[oa] por Cámara en Votaci[oó]n Final$", "approved by the House in final vote"),
-    (r"^Aprobad[oa] por Senado en Votaci[oó]n Final$", "approved by the Senate in final vote"),
+    (r"^Aprobad[oa] por (la )?Cámara en Votaci[oó]n Final$", "approved by the House in final vote"),
+    (r"^Aprobad[oa] por (el )?Senado en Votaci[oó]n Final$", "approved by the Senate in final vote"),
+    (r"^Reuni[oó]n Ejecutiva", "executive meeting"),
     (r"^Texto de Aprobaci[oó]n Final enviado al Senado$", "final approved text sent to the Senate"),
     (r"^Texto de Aprobaci[oó]n Final enviado a la Cámara$", "final approved text sent to the House"),
     (r"^Informe Positivo", "favorable committee report"),
@@ -126,6 +134,53 @@ def doc_label(url, original):
 def load_state(path):
     with open(path) as f:
         return json.load(f)
+
+
+def load_featured(path):
+    """{sutra id (str): entry} from featured.json; an absent file means nothing is featured."""
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return {str(x["id"]): x for x in json.load(f).get("measures", [])}
+
+
+def enroll_featured(state, featured, cache_dir, today, deadline=None):
+    """Make every measure in featured.json a tracked entry flagged featured=True, and keep the
+    flag in step with the file (delisted measures stay tracked as ordinary ones).
+
+    A newly listed measure starts from its current SUTRA events, so enrollment itself never
+    reads as movement; only what happens after today does. Its headline/why come from Claude
+    now; if that fails the entry carries fallback text and summary_pending, and the usual
+    repair path redoes it on the next send."""
+    for mid, t in state["tracked"].items():
+        if mid in featured:
+            t["featured"] = True
+        else:
+            t.pop("featured", None)
+    new_ids = [mid for mid in featured if mid not in state["tracked"]]
+    if not new_ids:
+        return
+    with ThreadPoolExecutor(6) as ex:
+        pages = dict(zip(new_ids, ex.map(lambda i: get_measure(int(i)), new_ids)))
+    items = []
+    for mid, m in pages.items():
+        if not isinstance(m, dict):
+            log(f"featured: {featured[mid].get('num', mid)} (id {mid}) not readable on SUTRA; will retry tomorrow")
+            continue
+        status, text_kw = text_keywords(m, cache_dir)   # also fills the text cache for excerpt()
+        m["kw_display"] = list(dict.fromkeys(scan.match_keywords(m["titulo"]) + text_kw))
+        items.append(m)
+    summ = summarize(items, cache_dir, deadline=deadline) if items else {}
+    for m in items:
+        s = summ.get(m["id"])
+        state["tracked"][str(m["id"])] = {
+            "num": scan_number(m), "filed": m["fecha_radicacion"], "featured": True, "featured_since": today,
+            **(s or fallback_summary(m)), "keywords": m["kw_display"],
+            "events": m["eventos"], "docs": m["documentos"],
+            "final": bool(any(FINAL_EVENT.search(ev["evento"]) for ev in m["eventos"]))}
+        if not s:
+            state["tracked"][str(m["id"])]["summary_pending"] = True
+    log("featured: enrolled " + " ".join(scan_number(m) for m in items))
 
 
 def save_state(path, state):
@@ -431,8 +486,9 @@ def run(args):
     matches.sort(key=lambda m: (m["fecha_radicacion"], m["numero"]))
     log(f"matches: {len(matches)} " + " ".join(m["numero"] for m in matches))
 
-    # 4. Movement on measures already sent
-    movement = []
+    # 4. Movement on measures already sent, featured ones kept apart
+    enroll_featured(state, load_featured(args.featured), cache, today, deadline=summary_deadline(now, args))
+    movement, featured = [], []
     live = [mid for mid, t in state["tracked"].items() if not t.get("final")]
     with ThreadPoolExecutor(6) as ex:
         pages = dict(zip(live, ex.map(lambda i: get_measure(int(i)), live)))
@@ -445,10 +501,11 @@ def run(args):
         if not new_ev:
             continue
         new_docs = [d for d in m["documentos"] if d not in t.get("docs", [])]
-        movement.append({"mid": mid, "m": m, "t": t, "events": new_ev, "new_docs": new_docs})
-    log(f"movement: {len(movement)} tracked measures with new events (of {len(live)} tracked)")
+        (featured if t.get("featured") else movement).append(
+            {"mid": mid, "m": m, "t": t, "events": new_ev, "new_docs": new_docs})
+    log(f"movement: {len(movement)} tracked + {len(featured)} featured measures with new events (of {len(live)} tracked)")
 
-    if not matches and not (movement and SEND_MOVEMENT_ONLY):
+    if not matches and not featured and not (movement and SEND_MOVEMENT_ONLY):
         log("nothing to send today")
         if not args.dry_run:
             save_state(args.state, state)
@@ -472,25 +529,16 @@ def run(args):
                           "headline": s["headline"], "why": s["why"], "title": m["titulo"],
                           "keywords": m["kw_display"], "links": links})
 
-    mov_items = []
-    for mv in movement:
-        t, m = mv["t"], mv["m"]
-        links = [("View on SUTRA", m["url"])]
-        doc = (mv["new_docs"] or m["documentos"] or [None])[-1]
-        if doc:
-            links.append((doc_label(doc, original=not mv["new_docs"]), doc))
-        mov_items.append({"num": t["num"],
-                          "date": f"Filed {long_date(date.fromisoformat(t['filed']))} · "
-                                  f"first sent {long_date(date.fromisoformat(t['first_sent']))}",
-                          "headline": t["headline"], "why": t["why"],
-                          "news": describe_events(mv["events"]), "links": links})
+    feat_items = [movement_item(mv) for mv in featured]
+    mov_items = [movement_item(mv) for mv in movement]
 
     # 6. Render + feed
-    n = len(new_items)
+    n, updates = len(new_items), len(feat_items) + len(mov_items)
     title = (f"Legislative Monitor: {n} new measure{'s' if n != 1 else ''}" if n
-             else f"Legislative Monitor: {len(mov_items)} update{'s' if len(mov_items) != 1 else ''}")
+             else f"Legislative Monitor: {updates} update{'s' if updates != 1 else ''}")
     subline = f"SUTRA · Measures filed yesterday, {filed_day.strftime('%A')}, {long_date(filed_day)}"
-    fragment = email_template.build(new_items, mov_items, title=title, subline=subline, logo_url=LOGO_URL)
+    fragment = email_template.build(new_items, mov_items, featured=feat_items,
+                                    title=title, subline=subline, logo_url=LOGO_URL)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "sutra.xml").write_text(build_feed(fragment, mail_date, now, title), encoding="utf-8")
@@ -498,7 +546,8 @@ def run(args):
         f'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
         f'<title>{title}</title></head><body style="margin:0;background:#f0f0f0;">{fragment}</body></html>',
         encoding="utf-8")
-    log(f"wrote {out / 'sutra.xml'}: {n} new, {len(mov_items)} movement, {len(fragment.encode()) // 1024} KB")
+    log(f"wrote {out / 'sutra.xml'}: {len(feat_items)} featured, {n} new, {len(mov_items)} movement, "
+        f"{len(fragment.encode()) // 1024} KB")
 
     # 7. Remember what was sent
     for m in matches:
@@ -509,7 +558,7 @@ def run(args):
             "final": bool(any(FINAL_EVENT.search(ev["evento"]) for ev in m["eventos"]))}
         if not m["summary_ok"]:
             state["tracked"][str(m["id"])]["summary_pending"] = True
-    for mv in movement:
+    for mv in featured + movement:
         t, m = mv["t"], mv["m"]
         t["events"], t["docs"] = m["eventos"], m["documentos"]
         t["final"] = any(FINAL_EVENT.search(ev["evento"]) for ev in m["eventos"])
@@ -519,6 +568,21 @@ def run(args):
     if not args.dry_run:
         save_state(args.state, state)
     return 0
+
+
+def movement_item(mv):
+    """A movement dict (step 4) → the card fields the template renders. Featured measures were
+    never sent as new, so their date line has no 'first sent' part."""
+    t, m = mv["t"], mv["m"]
+    links = [("View on SUTRA", m["url"])]
+    doc = (mv["new_docs"] or m["documentos"] or [None])[-1]
+    if doc:
+        links.append((doc_label(doc, original=not mv["new_docs"]), doc))
+    date_line = f"Filed {long_date(date.fromisoformat(t['filed']))}"
+    if t.get("first_sent"):
+        date_line += f" · first sent {long_date(date.fromisoformat(t['first_sent']))}"
+    return {"num": t["num"], "date": date_line, "headline": t["headline"], "why": t["why"],
+            "news": describe_events(mv["events"]), "links": links}
 
 
 def scan_number(m):
@@ -556,6 +620,7 @@ def main():
     ap.add_argument("--state", default="state/state.json")
     ap.add_argument("--out", default="out")
     ap.add_argument("--cache", help="document cache dir (default: a temp dir)")
+    ap.add_argument("--featured", default=str(FEATURED_FILE), help="list of featured measures (JSON)")
     ap.add_argument("--now", help="pretend the run happens at this UTC time (ISO 8601), for replays")
     ap.add_argument("--dry-run", action="store_true", help="write the feed but do not update state")
     ap.add_argument("--ignore-cutoff", action="store_true")

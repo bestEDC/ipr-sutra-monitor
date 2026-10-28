@@ -24,6 +24,10 @@ Bills and resolutions only (proyectos, resoluciones). A measure is included when
 
 Matching ignores accents and capitalization. Keywords live in `sutra_scan.py` (`KEYWORDS`) and `sutra/daily.py` (`STRONG_TEXT_KW`).
 
+## Featured measures
+
+`featured.json` lists measures leadership follows by name (SUTRA id + number). The first run after a measure is listed enrolls it in `tracked` from its current status, so listing never counts as movement. From then on, any new event on a featured measure opens the email in its own section above "New measures", and sends even on a day with nothing else. Remove an entry and the measure keeps being tracked as an ordinary one.
+
 ## Files
 
 | Path | What |

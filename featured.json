@@ -1,0 +1,7 @@
+{
+  "about": "High-visibility measures leadership asked to follow. Movement on any of these opens the alert in its own featured section. 'id' is the number in the SUTRA URL (sutra.oslpr.org/medidas/<id>). Add or remove entries here; the next run picks the change up.",
+  "measures": [
+    {"id": 160233, "num": "P. del S. 1035", "added": "2026-10-28"},
+    {"id": 160074, "num": "P. del S. 981", "added": "2026-10-28"}
+  ]
+}

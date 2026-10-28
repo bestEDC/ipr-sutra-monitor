@@ -18,11 +18,17 @@ WHITE = "#FFFFFF"
 HEADER_PURPLE = "#302457"
 LIGHT_BLUE = "#98E1F8"
 MINT = "#67DEC6"
+ORANGE = "#FF9D00"
 MOV_PANEL, MOV_INK = MINT, NAVY
+# Priority (featured) measures: BrandMaster Option 3 (Ian, 2026-10-28). They live inside the purple
+# header under an orange label; their document button is orange with navy ink, since a navy button
+# on the purple ground would vanish (Ian's rule: a ground never swallows its button).
+FEAT_DOC_BTN = (ORANGE, NAVY)
 
 SANS = "Montserrat,Arial,Helvetica,sans-serif"
 DISPLAY = "Teko,'Arial Narrow',Arial,sans-serif"
 
+SEC_FEAT = "Priority measures"
 SEC_NEW = "New measures"
 SEC_MOV = "Movement on tracked measures"
 L_WHY = "Why it matters:"
@@ -88,12 +94,13 @@ def _btn_text(text, href, ink, pad):
             f'text-align:center;text-decoration:none;">{e(text)}</a>')
 
 
-def button_bar(links):
-    """The links are the card's bottom edge: SUTRA outline, document filled navy. One link spans the card."""
+def button_bar(links, doc=(NAVY, WHITE)):
+    """The links are the card's bottom edge: SUTRA outline, document filled (fill, ink) = doc.
+    One link spans the card."""
     width = 100 // len(links)
     cells = []
     for n, (text, href) in enumerate(links):
-        fill, ink = (NAVY, WHITE) if n else (WHITE, NAVY)
+        fill, ink = doc if n else (WHITE, NAVY)
         cells.append(
             f'<td class="bar-cell" width="{width}%" bgcolor="{fill}" style="width:{width}%;background:{fill};border-top:1px solid {NAVY};'
             f'mso-padding-alt:15px 0 15px 4px;">{_btn_text(text, href, ink, "15px 0 15px 4px")}</td>')
@@ -115,8 +122,9 @@ def keyword_footer(keywords):
     return f'<tr><td class="card-pad" bgcolor="{GRAY100}" style="background:{GRAY100};padding:11px 28px 7px;">{inner}</td></tr>'
 
 
-def card(item, movement=False):
-    """item: num, date, headline, why, links[(text, href)], plus title + keywords (new) or news (movement)."""
+def card(item, movement=False, doc=(NAVY, WHITE)):
+    """item: num, date, headline, why, links[(text, href)], plus title + keywords (new) or news (movement).
+    doc: (fill, ink) of the document button."""
     head = f"""<tr><td class="card-pad" bgcolor="{GRAY100}" style="background:{GRAY100};padding:9px 28px 6px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="meta ipr-d" style="vertical-align:middle;font-family:{DISPLAY};font-size:24px;line-height:26px;font-weight:400;color:{ROYAL};text-transform:uppercase;white-space:nowrap;">{e(item["num"])}</td>
@@ -134,18 +142,29 @@ def card(item, movement=False):
                   f'<div class="fine" lang="es" style="font-family:{SANS};font-size:11px;line-height:17px;font-weight:500;color:{NAVY};">{e(item["title"])}</div>']
     rows = [head,
             f'<tr><td class="card-pad" style="padding:22px 28px 24px;">{"".join(parts)}</td></tr>',
-            button_bar(item["links"])]
+            button_bar(item["links"], doc)]
     if not movement:
         rows.append(keyword_footer(item["keywords"]))
     return (f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="{WHITE}" '
             f'style="background:{WHITE};">\n' + "\n".join(rows) + "\n</table>")
 
 
+GAP = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
+       '<td height="12" style="height:12px;font-size:0;line-height:0;">&nbsp;</td></tr></table>')
+
+
+def priority_rows(items):
+    """The priority measures: one more header row, same ground and gutters as the header above it,
+    an orange label, then movement cards with the orange document button."""
+    cards = GAP.join(card(i, movement=True, doc=FEAT_DOC_BTN) for i in items)
+    return f"""<tr><td class="hdr" bgcolor="{HEADER_PURPLE}" style="background:{HEADER_PURPLE};padding:0 41px 30px;">
+<div class="ipr-d" style="font-family:{DISPLAY};font-size:24px;line-height:26px;font-weight:500;color:{ORANGE};text-transform:uppercase;margin:0 0 12px;">{e(SEC_FEAT)}</div>
+{cards}</td></tr>"""
+
+
 def section(title, items, movement=False, ground=WHITE, panel=AQUA, ink=ROYAL):
     """A tab rising out of whatever sits above it, then the panel of cards in the same colour."""
-    gap = ('<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'
-           '<td height="12" style="height:12px;font-size:0;line-height:0;">&nbsp;</td></tr></table>')
-    cards = gap.join(card(i, movement) for i in items)
+    cards = GAP.join(card(i, movement) for i in items)
     return f"""<tr><td class="tab-row" bgcolor="{ground}" style="background:{ground};padding:0 41px;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="ipr-d" bgcolor="{panel}" style="background:{panel};border-radius:8px 8px 0 0;padding:6px 22px 2px;font-family:{DISPLAY};font-size:20px;line-height:24px;font-weight:500;color:{ink};text-transform:uppercase;white-space:nowrap;">{e(title)}</td>
@@ -153,18 +172,22 @@ def section(title, items, movement=False, ground=WHITE, panel=AQUA, ink=ROYAL):
 <tr><td class="panel" bgcolor="{panel}" style="background:{panel};padding:24px 41px 30px;">{cards}</td></tr>"""
 
 
-def build(new, mov, *, title, subline, logo_url):
-    """Each section is left out when it has no entries."""
+def build(new, mov, *, title, subline, logo_url, featured=()):
+    """Each section is left out when it has no entries. Featured (priority) movement, when there is
+    any, sits inside the header band; each section's tab rises out of whatever sits above it."""
     rows = [f"""<tr><td class="hdr" bgcolor="{HEADER_PURPLE}" style="background:{HEADER_PURPLE};padding:34px 41px 30px;">
 <a href="https://www.investpr.org" style="text-decoration:none;"><img src="{ea(logo_url)}" width="187" alt="Invest Puerto Rico" class="ipr-logo" style="display:block;border:0;width:187px;height:auto;"></a>
 <div class="ipr-d" style="font-family:{DISPLAY};font-size:37px;line-height:34px;font-weight:400;color:{WHITE};text-transform:uppercase;margin:28px 0 10px;">{e(title)}</div>
 <div style="font-family:{SANS};font-size:12px;line-height:17px;font-weight:600;color:{LIGHT_BLUE};">{e(subline)}</div>
 </td></tr>"""]
+    ground = HEADER_PURPLE
+    if featured:
+        rows.append(priority_rows(featured))
     if new:
-        rows.append(section(SEC_NEW, new, ground=HEADER_PURPLE))
+        rows.append(section(SEC_NEW, new, ground=ground))
+        ground = AQUA
     if mov:
-        rows.append(section(SEC_MOV, mov, movement=True, ground=AQUA if new else HEADER_PURPLE,
-                            panel=MOV_PANEL, ink=MOV_INK))
+        rows.append(section(SEC_MOV, mov, movement=True, ground=ground, panel=MOV_PANEL, ink=MOV_INK))
     rows.append('<tr><td height="36" style="height:36px;font-size:0;line-height:0;">&nbsp;</td></tr>')
     inner = "\n".join(rows)
     return f"""{FONT_LINK}
